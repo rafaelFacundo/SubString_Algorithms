@@ -13,6 +13,15 @@ int countLen(const char *text)
     return sum;
 }
 
+void printV(int *v, int len)
+{
+    for (int *i = v; i != (v + len); ++i)
+    {
+        cout << *(i) << ' ';
+    }
+    cout << '\n';
+}
+
 //=========================================================
 
 void makeLPS(int oc[], const char *pattern)
@@ -70,9 +79,9 @@ void KMP(const char *text, const char *pattern, int *o)
         if (i == lenPattern)
         {
             ++sum;
-            cout << "achei " << sum << '\n';
+            cout << "achei " << (j - i) << '\n';
+            *(oPosi) = j - i;
             i = 0;
-            *(oPosi) = j;
             ++oPosi;
         }
     }
@@ -97,7 +106,7 @@ void brute(const char *text, const char *pattern, int *o)
         }
         if (pattern[pat2] == '\0')
         {
-            cout << "bruta achohu\n";
+            cout << "bruta achohu " << i << '\n';
             *(oPosi) = i;
             ++oPosi;
         }
@@ -135,8 +144,7 @@ void generateAleatoryString(char *vector, char limitLetter, int lenOfString)
     {
         *(i) = 'a' + teste.returnNumber();
     }
-    int i[5];
-    makeLPS(i, vector);
+    *(vector + lenOfString) = '\0';
     cout << '\n';
 }
 
@@ -145,8 +153,8 @@ void generateAleatoryString(char *vector, char limitLetter, int lenOfString)
 int main(int argc, char *argv[])
 {
 
-    const char *text;
-    const char *pattern;
+    char *text;
+    char *pattern;
     int lenOfString;
     int lenOfPattern;
     int *o_ofKmp;
@@ -166,6 +174,10 @@ int main(int argc, char *argv[])
         text = "dabcdeabcdabcdabcaa";
         KMP(text, pattern, o_ofKmp);
         brute(text, pattern, o_ofBrute);
+        cout << "Vetor do kmp\n ";
+        printV(o_ofKmp, 19);
+        cout << "Vetor do bruta\n ";
+        printV(o_ofBrute, 19);
 
         break;
 
