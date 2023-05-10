@@ -51,6 +51,7 @@ void KMP(const char *text, const char *pattern, int *o)
     int i = 0;
     int j = 0;
     int sum = 0;
+    int *oPosi = o;
     while (text[j] != '\0')
     {
         if (text[j] != pattern[i] && i == 0)
@@ -71,8 +72,37 @@ void KMP(const char *text, const char *pattern, int *o)
             ++sum;
             cout << "achei " << sum << '\n';
             i = 0;
+            *(oPosi) = j;
+            ++oPosi;
         }
     }
+    *(oPosi) = -1;
+}
+
+//===========================================================
+
+void brute(const char *text, const char *pattern, int *o)
+{
+    int textp2;
+    int pat2;
+    int *oPosi = o;
+    for (int i = 0; text[i] != '\0'; ++i)
+    {
+        textp2 = i;
+        pat2 = 0;
+        while ((text[textp2] != '\0' && pattern[pat2] != '\0') && (text[textp2] == pattern[pat2]))
+        {
+            ++pat2;
+            ++textp2;
+        }
+        if (pattern[pat2] == '\0')
+        {
+            cout << "bruta achohu\n";
+            *(oPosi) = i;
+            ++oPosi;
+        }
+    }
+    *(oPosi) = -1;
 }
 
 //===========================================================
@@ -118,16 +148,24 @@ int main(int argc, char *argv[])
     const char *text;
     const char *pattern;
     int lenOfString;
-    int *o;
+    int lenOfPattern;
+    int *o_ofKmp;
+    int *o_ofBrute;
     switch (*(argv[1]))
     {
     case 'A':
         lenOfString = atoi(argv[4]);
-        text = (char *)malloc(lenOfString * (sizeof(char *) + 1));
+        lenOfPattern = atoi(argv[3]);
+        /* text = (char *)malloc(lenOfString * (sizeof(char *) + 1));
+        pattern = (char *)malloc(lenOfPattern * (sizeof(char *) + 1)); */
+        o_ofBrute = (int *)malloc(lenOfPattern * (19));
+        o_ofKmp = (int *)malloc(lenOfPattern * (19));
+
         // generateAleatoryString(text, *(argv[2]), lenOfString);
         pattern = "abcdabca";
         text = "dabcdeabcdabcdabcaa";
-        KMP(text, pattern, o);
+        KMP(text, pattern, o_ofKmp);
+        brute(text, pattern, o_ofBrute);
 
         break;
 
@@ -136,3 +174,14 @@ int main(int argc, char *argv[])
         break;
     }
 }
+
+/* g++ -Wall -Wextra -std=c++17 -pedantic -o programa main.cpp */
+
+/*
+
+    afekfkfkklk
+            abcf
+
+         abcf
+
+*/
