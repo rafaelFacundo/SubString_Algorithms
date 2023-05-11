@@ -45,7 +45,6 @@ void makeLPS(int oc[], const char *pattern)
     int sum = 0;
     oc[0] = sum;
     int len = 0;
-    int posiLooking = 0;
     int i = 0;
     i++;
     while (pattern[i] != '\0')
@@ -161,7 +160,6 @@ void generateAleatoryString(char *vector, char limitLetter, int lenOfString)
         *(i) = 'a' + teste.returnNumber();
     }
     *(vector + lenOfString) = '\0';
-    cout << '\n';
 }
 
 void printResults(duration<double> kmpTime, duration<double> bruteTime)
@@ -173,7 +171,7 @@ void printResults(duration<double> kmpTime, duration<double> bruteTime)
 
 //=========================
 
-int main(int argc, char *argv[])
+int main(int, char *argv[])
 {
 
     char *text;
