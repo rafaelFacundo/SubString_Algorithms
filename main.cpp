@@ -1,7 +1,10 @@
 #include <iostream>
 #include <stdlib.h>
 #include <random>
+#include <chrono>
+#include "./instancias_Reais_Trabalho_2.hpp"
 using namespace std;
+using namespace chrono;
 
 int countLen(const char *text)
 {
@@ -20,6 +23,19 @@ void printV(int *v, int len)
         cout << *(i) << ' ';
     }
     cout << '\n';
+}
+
+bool verifyTheResults(int *kmpOvec, int *bruteOvec)
+{
+    while ((*(kmpOvec) == *(bruteOvec)) && (*(kmpOvec) != -1 && *(bruteOvec) != -1))
+    {
+        ++kmpOvec;
+        ++bruteOvec;
+    }
+    if (*(kmpOvec) != -1 || *(bruteOvec) != -1)
+        return false;
+    else
+        return true;
 }
 
 //=========================================================
@@ -148,6 +164,13 @@ void generateAleatoryString(char *vector, char limitLetter, int lenOfString)
     cout << '\n';
 }
 
+void printResults(duration<double> kmpTime, duration<double> bruteTime)
+{
+    cout << "== RESULTADO DOS TEMPOS GASTOS PELOS ALGORITMOS: \n";
+    cout << "== KMP  --------- : " << kmpTime.count() << " seg.\n";
+    cout << "== FORÇA BRUTA -- : " << bruteTime.count() << "seg.\n";
+}
+
 //=========================
 
 int main(int argc, char *argv[])
@@ -155,35 +178,90 @@ int main(int argc, char *argv[])
 
     char *text;
     char *pattern;
+    int numberOfinstances = atoi(argv[5]);
     int lenOfString;
     int lenOfPattern;
     int *o_ofKmp;
     int *o_ofBrute;
-    switch (*(argv[1]))
+    char letter;
+    int x;
+    int y;
+
+    duration<double> kmpTime;
+    duration<double> bruteTime;
+
+    try
     {
-    case 'A':
-        lenOfString = atoi(argv[4]);
-        lenOfPattern = atoi(argv[3]);
-        /* text = (char *)malloc(lenOfString * (sizeof(char *) + 1));
-        pattern = (char *)malloc(lenOfPattern * (sizeof(char *) + 1)); */
-        o_ofBrute = (int *)malloc(lenOfPattern * (19));
-        o_ofKmp = (int *)malloc(lenOfPattern * (19));
+        switch (*(argv[1]))
+        {
+        case 'A':
+            lenOfString = atoi(argv[4]);
+            lenOfPattern = atoi(argv[3]);
+            letter = *(argv[2]);
+            text = (char *)malloc(lenOfString * (sizeof(char *) + 1));
+            pattern = (char *)malloc(lenOfPattern * (sizeof(char *) + 1));
+            o_ofBrute = (int *)malloc(lenOfString * sizeof(int));
+            o_ofKmp = (int *)malloc(lenOfString * sizeof(int));
 
-        // generateAleatoryString(text, *(argv[2]), lenOfString);
-        pattern = "abcdabca";
-        text = "dabcdeabcdabcdabcaa";
-        KMP(text, pattern, o_ofKmp);
-        brute(text, pattern, o_ofBrute);
-        cout << "Vetor do kmp\n ";
-        printV(o_ofKmp, 19);
-        cout << "Vetor do bruta\n ";
-        printV(o_ofBrute, 19);
+            while (numberOfinstances > 0)
+            {
+                generateAleatoryString(text, letter, lenOfString);
+                generateAleatoryString(pattern, letter, lenOfPattern);
+                auto startKMP = steady_clock::now();
+                KMP(text, pattern, o_ofKmp);
+                auto endKMP = steady_clock::now();
+                kmpTime += endKMP - startKMP;
+                auto startBrute = steady_clock::now();
+                brute(text, pattern, o_ofBrute);
+                auto endBrute = steady_clock::now();
+                bruteTime += endBrute - startBrute;
+                if (!verifyTheResults(o_ofBrute, o_ofKmp))
+                {
+                    cout << "Algum algoritmo não funcionou bem.\n";
+                    break;
+                }
+                --numberOfinstances;
+            }
+            printResults(kmpTime, bruteTime);
+            break;
 
-        break;
+        case 'R':
+            o_ofBrute = (int *)malloc(35129 * sizeof(int));
+            o_ofKmp = (int *)malloc(35129 * sizeof(int));
+            x = atoi(argv[2]);
+            y = atoi(argv[3]);
+            if (x > y || x > 35129 || y > 35129)
+                throw invalid_argument("Valores fornecidos são errados.\n");
+            while (x <= y)
+            {
+                auto startKMP = steady_clock::now();
+                KMP(Texto_Livros, Padroes_Palavras[x], o_ofKmp);
+                auto endKMP = steady_clock::now();
+                kmpTime += endKMP - startKMP;
+                auto startBrute = steady_clock::now();
+                brute(Texto_Livros, Padroes_Palavras[x], o_ofBrute);
+                auto endBrute = steady_clock::now();
+                bruteTime += endBrute - startBrute;
+                if (!verifyTheResults(o_ofBrute, o_ofKmp))
+                {
+                    cout << "Algum algoritmo não funcionou bem.\n";
+                    break;
+                }
+            }
+            break;
 
-    default:
-        cout << "Entrada inválida\n";
-        break;
+        default:
+            cout << "Entrada inválida\n";
+            break;
+        }
+    }
+    catch (const bad_alloc &error)
+    {
+        cout << "Um erro de alocação aconteceu, tente diminuir o tamanho do vetor.\n";
+    }
+    catch (...)
+    {
+        cout << "Algum erro aconteceu, tente novamente.\n";
     }
 }
 
