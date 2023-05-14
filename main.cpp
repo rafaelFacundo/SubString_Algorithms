@@ -6,6 +6,29 @@
 using namespace std;
 using namespace chrono;
 
+void printV(int *v)
+{
+    for (int *i = v; *(i) != -1; ++i)
+    {
+        cout << *(i) << ' ';
+    }
+    cout << '\n';
+}
+
+void printS(char *string)
+{
+    for (char *i = string; *(i) != '\0'; ++i)
+    {
+        cout << *(i);
+    }
+    cout << '\n';
+}
+
+struct ExecutionError
+{
+    const char *message;
+};
+
 int countLen(const char *text)
 {
     int sum = 0;
@@ -14,15 +37,6 @@ int countLen(const char *text)
         ++sum;
     }
     return sum;
-}
-
-void printV(int *v, int len)
-{
-    for (int *i = v; i != (v + len); ++i)
-    {
-        cout << *(i) << ' ';
-    }
-    cout << '\n';
 }
 
 bool verifyTheResults(int *kmpOvec, int *bruteOvec)
@@ -45,8 +59,7 @@ void makeLPS(int oc[], const char *pattern)
     int sum = 0;
     oc[0] = sum;
     int len = 0;
-    int i = 0;
-    i++;
+    int i = 1;
     while (pattern[i] != '\0')
     {
         if (pattern[len] == pattern[i])
@@ -69,38 +82,43 @@ void makeLPS(int oc[], const char *pattern)
 
 void KMP(const char *text, const char *pattern, int *o)
 {
-    int lenPattern = countLen(pattern);
-    int *oc = (int *)malloc(lenPattern * sizeof(int));
-    makeLPS(oc, pattern);
-    int i = 0;
-    int j = 0;
-    int sum = 0;
-    int *oPosi = o;
-    while (text[j] != '\0')
+
+    try
     {
-        if (text[j] != pattern[i] && i == 0)
+        int lenPattern = countLen(pattern);
+        int *oc = new int[lenPattern];
+        makeLPS(oc, pattern);
+        int i = 0;
+        int j = 0;
+        int *oPosi = o;
+        while (*(text + j) != '\0')
         {
-            ++j;
+            if (text[j] != pattern[i] && i > 0)
+            {
+                i = oc[i - 1];
+            }
+            else if (text[j] != pattern[i] && i == 0)
+            {
+                ++j;
+            }
+            else if (text[j] == pattern[i])
+            {
+                ++i;
+                ++j;
+            }
+            if (i == lenPattern)
+            {
+                *(oPosi) = j - i;
+                i = oc[i - 1];
+                ++oPosi;
+            }
         }
-        else if (text[j] != pattern[i] && i > 0)
-        {
-            i = oc[i - 1];
-        }
-        else if (text[j] == pattern[i])
-        {
-            ++i;
-            ++j;
-        }
-        if (i == lenPattern)
-        {
-            ++sum;
-            cout << "achei " << (j - i) << '\n';
-            *(oPosi) = j - i;
-            i = 0;
-            ++oPosi;
-        }
+        *(oPosi) = -1;
     }
-    *(oPosi) = -1;
+    catch (const bad_alloc &e)
+    {
+        throw ExecutionError{e.what()};
+    }
 }
 
 //===========================================================
@@ -121,7 +139,6 @@ void brute(const char *text, const char *pattern, int *o)
         }
         if (pattern[pat2] == '\0')
         {
-            cout << "bruta achohu " << i << '\n';
             *(oPosi) = i;
             ++oPosi;
         }
@@ -166,7 +183,7 @@ void printResults(duration<double> kmpTime, duration<double> bruteTime)
 {
     cout << "== RESULTADO DOS TEMPOS GASTOS PELOS ALGORITMOS: \n";
     cout << "== KMP  --------- : " << kmpTime.count() << " seg.\n";
-    cout << "== FORÇA BRUTA -- : " << bruteTime.count() << "seg.\n";
+    cout << "== FORÇA BRUTA -- : " << bruteTime.count() << " seg.\n";
 }
 
 //=========================
@@ -176,7 +193,7 @@ int main(int, char *argv[])
 
     char *text;
     char *pattern;
-    int numberOfinstances = atoi(argv[5]);
+    int numberOfinstances;
     int lenOfString;
     int lenOfPattern;
     int *o_ofKmp;
@@ -193,13 +210,14 @@ int main(int, char *argv[])
         switch (*(argv[1]))
         {
         case 'A':
+            numberOfinstances = atoi(argv[5]);
             lenOfString = atoi(argv[4]);
             lenOfPattern = atoi(argv[3]);
             letter = *(argv[2]);
-            text = (char *)malloc(lenOfString * (sizeof(char *) + 1));
-            pattern = (char *)malloc(lenOfPattern * (sizeof(char *) + 1));
-            o_ofBrute = (int *)malloc(lenOfString * sizeof(int));
-            o_ofKmp = (int *)malloc(lenOfString * sizeof(int));
+            text = new char[lenOfString];
+            pattern = new char[lenOfPattern];
+            o_ofBrute = new int[lenOfString];
+            o_ofKmp = new int[lenOfString];
 
             while (numberOfinstances > 0)
             {
@@ -213,9 +231,15 @@ int main(int, char *argv[])
                 brute(text, pattern, o_ofBrute);
                 auto endBrute = steady_clock::now();
                 bruteTime += endBrute - startBrute;
+                cout << "O vetor de ocorrencia: \n";
+                cout << "Força bruta: \n";
+                printV(o_ofBrute);
+                cout << "KMP: \n";
+                printV(o_ofKmp);
+
                 if (!verifyTheResults(o_ofBrute, o_ofKmp))
                 {
-                    cout << "Algum algoritmo não funcionou bem.\n";
+                    throw ExecutionError{"Os algoritmos não funcionaram.\n"};
                     break;
                 }
                 --numberOfinstances;
@@ -229,7 +253,7 @@ int main(int, char *argv[])
             x = atoi(argv[2]);
             y = atoi(argv[3]);
             if (x > y || x > 35129 || y > 35129)
-                throw invalid_argument("Valores fornecidos são errados.\n");
+                throw ExecutionError{"Os valores de x e y fornecidos estão incorretos.\n"};
             while (x <= y)
             {
                 auto startKMP = steady_clock::now();
@@ -242,25 +266,31 @@ int main(int, char *argv[])
                 bruteTime += endBrute - startBrute;
                 if (!verifyTheResults(o_ofBrute, o_ofKmp))
                 {
-                    cout << "Algum algoritmo não funcionou bem.\n";
+                    throw ExecutionError{"Os algoritmos não funcionaram.\n"};
                     break;
                 }
             }
+            printResults(kmpTime, bruteTime);
             break;
 
         default:
-            cout << "Entrada inválida\n";
+            throw ExecutionError{"Entrada inválida.\n"};
             break;
         }
     }
-    catch (const bad_alloc &error)
+    catch (ExecutionError &e)
     {
-        cout << "Um erro de alocação aconteceu, tente diminuir o tamanho do vetor.\n";
+        cout << e.message << '\n';
     }
     catch (...)
     {
-        cout << "Algum erro aconteceu, tente novamente.\n";
+        cout << "Algum erro inesperado aconteceu, tente novamente.\n";
     }
+
+    /* delete text;
+    delete pattern;
+    delete o_ofBrute;
+    delete o_ofKmp; */
 }
 
 /* g++ -Wall -Wextra -std=c++17 -pedantic -o programa main.cpp */
