@@ -248,8 +248,8 @@ int main(int, char *argv[])
             break;
 
         case 'R':
-            o_ofBrute = (int *)malloc(35129 * sizeof(int));
-            o_ofKmp = (int *)malloc(35129 * sizeof(int));
+            o_ofBrute = new int[50000];
+            o_ofKmp = new int[50000];
             x = atoi(argv[2]);
             y = atoi(argv[3]);
             if (x > y || x > 35129 || y > 35129)
@@ -269,6 +269,7 @@ int main(int, char *argv[])
                     throw ExecutionError{"Os algoritmos não funcionaram.\n"};
                     break;
                 }
+                ++x;
             }
             printResults(kmpTime, bruteTime);
             break;
@@ -286,20 +287,6 @@ int main(int, char *argv[])
     {
         cout << "Algum erro inesperado aconteceu, tente novamente.\n";
     }
-
-    /* delete text;
-    delete pattern;
-    delete o_ofBrute;
-    delete o_ofKmp; */
 }
 
 /* g++ -Wall -Wextra -std=c++17 -pedantic -o programa main.cpp */
-
-/*
-
-    afekfkfkklk
-            abcf
-
-         abcf
-
-*/
